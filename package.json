@@ -1,5 +1,5 @@
 {
-  "name": "@visdesignlab/trrack-vis",
+  "name": "@jku-icg/trrack-notebook-vis",
   "version": "0.0.0",
   "description": "",
   "keywords": [],
@@ -9,10 +9,10 @@
   "files": [
     "dist"
   ],
-  "author": "Kiran Gadhave <kirangadhave2@gmail.com>",
+  "author": "Klaus Eckelt <Klaus.Eckelt@jku.at>",
   "repository": {
     "type": "git",
-    "url": "git@github.com:visdesignlab/trrack-vis.git"
+    "url": "git@github.com:JKU-ICG/trrack-notebook-vis.git"
   },
   "license": "MIT",
   "engines": {
