@@ -1,14 +1,15 @@
 # trrack-notebook-vis Library
+![npm (scoped)](https://img.shields.io/npm/v/jku-icg/trrack-notebook-vis)
 
 This library is used by [jupyterlab_nbprovenance](https://github.com/JKU-ICG/jupyterlab_nbprovenance), an extension for JupyterLab to track provenance in notebooks. The provenance information is stored using the provenance tracking library [trrack]((https://github.com/visdesignlab/trrack)).
 This fork of [Trrack-vis](https://github.com/visdesignlab/trrack-vis) enhances the provenance visualization with features for notebooks.
 
 ## Development
 
-### Clone the repository
-
 ```bash
 git clone https://github.com/JKU-ICG/trrack-notebook-vis.git
+cd trrack-notebook-vis/
+npm install
 ```
 
 ### Use npm commands
@@ -25,6 +26,16 @@ git clone https://github.com/JKU-ICG/trrack-notebook-vis.git
 
 [jupyterlab_nbprovenance](https://github.com/JKU-ICG/jupyterlab_nbprovenance)  
 TODO
+
+## Publish
+
+Make sure to `npm login` with the user *icgbot* first.
+
+```sh
+npm pack --dry-run  # verify files
+npm publish
+```
+
 ## Resources
 
 Project created using [Typescript library starter](https://github.com/alexjoverm/typescript-library-starter) by [alexjoverm](https://github.com/alexjoverm/)

@@ -1,6 +1,6 @@
 {
   "name": "@jku-icg/trrack-notebook-vis",
-  "version": "0.0.0",
+  "version": "1.0.0-alpha.2",
   "description": "Provenance visualization for Jupyter notebooks.",
   "keywords": [],
   "main": "dist/provvis.umd.js",
@@ -33,7 +33,12 @@
     "semantic-release-prepare": "ts-node tools/semantic-release-prepare",
     "travis-deploy-once": "travis-deploy-once --pro",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook",
+
+    "prepare": "npm run build",
+    "prepublishOnly" : "npm test && npm run lint",
+    "version" : "npm run format && git add -A src",
+    "postversion" : "git push && git push --tags"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [
@@ -104,7 +109,6 @@
     "coveralls": "^3.0.9",
     "cross-env": "^7.0.0",
     "cz-conventional-changelog": "^3.1.0",
-    "husky": "^4.2.1",
     "jest": "^25.1.0",
     "jest-config": "^25.1.0",
     "lint-staged": "^10.0.7",
@@ -137,13 +141,6 @@
   "peerDependencies": {
     "react": "^16.12.0",
     "react-dom": "^16.12.0"
-  },
-  "husky": {
-    "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "lint-staged",
-      "pre-push": "npm run test:prod && npm run build"
-    }
   },
   "dependencies": {
     "@visdesignlab/trrack": "^1.2.0",
