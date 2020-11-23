@@ -34,11 +34,8 @@
     "travis-deploy-once": "travis-deploy-once --pro",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
-
     "prepare": "npm run build",
-    "prepublishOnly" : "npm test && npm run lint",
-    "version" : "npm run format && git add -A src",
-    "postversion" : "git push && git push --tags"
+    "prepublishOnly": "npm test && npm run lint"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [
