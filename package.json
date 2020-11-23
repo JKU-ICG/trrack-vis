@@ -109,7 +109,6 @@
     "coveralls": "^3.0.9",
     "cross-env": "^7.0.0",
     "cz-conventional-changelog": "^3.1.0",
-    "husky": "^4.2.1",
     "jest": "^25.1.0",
     "jest-config": "^25.1.0",
     "lint-staged": "^10.0.7",
@@ -142,13 +141,6 @@
   "peerDependencies": {
     "react": "^16.12.0",
     "react-dom": "^16.12.0"
-  },
-  "husky": {
-    "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "lint-staged",
-      "pre-push": "npm run test:prod && npm run build"
-    }
   },
   "dependencies": {
     "@visdesignlab/trrack": "^1.2.0",
