@@ -1,7 +1,7 @@
 {
   "name": "@jku-icg/trrack-notebook-vis",
   "version": "0.0.0",
-  "description": "",
+  "description": "Provenance visualization for Jupyter notebooks.",
   "keywords": [],
   "main": "dist/provvis.umd.js",
   "module": "dist/provvis.es5.js",
