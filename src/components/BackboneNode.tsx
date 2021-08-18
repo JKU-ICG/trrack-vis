@@ -1,4 +1,4 @@
-import { Provenance, ProvenanceNode, ProvenanceGraph, StateNode } from '@visdesignlab/trrack';
+import { Provenance, ProvenanceNode, StateNode } from '@visdesignlab/trrack';
 import React, { ReactChild } from 'react';
 import { Animate } from 'react-move';
 import { Popup } from 'semantic-ui-react';
@@ -7,10 +7,7 @@ import { BundleMap } from '../Utils/BundleMap';
 import { EventConfig } from '../Utils/EventConfig';
 import translate from '../Utils/translate';
 import { treeColor } from './Styles';
-import {
-  symbol,
-  symbolSquare, symbolTriangle, symbolWye
-} from "d3-shape";
+import { symbol, symbolSquare } from "d3-shape";
 import {style} from "typestyle";
 
 interface BackboneNodeProps<T, S extends string, A> {
@@ -19,7 +16,7 @@ interface BackboneNodeProps<T, S extends string, A> {
   iconOnly: boolean;
   current: boolean;
   duration: number;
-  node: StateNode<T, S, A>;
+  node: StateNode<S, A>;
   radius: number;
   strokeWidth: number;
   textSize: number;
@@ -34,8 +31,8 @@ interface BackboneNodeProps<T, S extends string, A> {
   clusterLabels: boolean;
   editAnnotations: boolean;
   eventConfig?: EventConfig<S>;
-  popupContent?: (nodeId: StateNode<T, S, A>) => ReactChild;
-  annotationContent?: (nodeId: StateNode<T, S, A>) => ReactChild;
+  popupContent?: (nodeId: StateNode<S, A>) => ReactChild;
+  annotationContent?: (nodeId: StateNode<S, A>) => ReactChild;
   expandedClusterList?: string[];
   cellsVisArea?: number;
   yOffset: number;
@@ -70,7 +67,7 @@ function BackboneNode<T, S extends string, A>({
   cellsVisArea,
   yOffset = 10,
 }: BackboneNodeProps<T, S, A>) {
-  const padding = 15;
+  let padding = 15;
 
   let cursorStyle = {
     cursor: "pointer",
@@ -91,7 +88,7 @@ function BackboneNode<T, S extends string, A>({
   let dropDownAdded = false;
 
   if (eventConfig) {
-    const eventType = node.metadata.type;
+    const eventType = node.metadata.eventType;
     if (eventType && eventType in eventConfig && eventType !== "Root") {
       const { bundleGlyph, currentGlyph, backboneGlyph } = eventConfig[
         eventType
@@ -125,11 +122,11 @@ function BackboneNode<T, S extends string, A>({
 
   //console.log(nodeMap[node.id]);
 
-  if (bundleMap && Object.keys(bundleMap).includes(node.id) && node.ephemeral && expandedClusterList && !expandedClusterList.includes(node.id))
+  if (bundleMap && Object.keys(bundleMap).includes(node.id) && node.actionType === "Ephemeral" && expandedClusterList && !expandedClusterList.includes(node.id))
   {
-    if(node.metadata && node.metadata.type)
+    if(node.metadata && node.metadata.eventType)
     {
-      label = "[" + bundleMap[node.id].bunchedNodes.length + "] " + node.metadata.type
+      label = "[" + bundleMap[node.id].bunchedNodes.length + "] " + node.metadata.eventType
     }
     else{
       label = "[" + bundleMap[node.id].bunchedNodes.length + "]"
@@ -139,8 +136,8 @@ function BackboneNode<T, S extends string, A>({
     label = node.label;
   }
 
-  if (node.artifacts && node.artifacts.annotation && node.artifacts.annotation.length > 0) {
-    annotate = node.artifacts.annotation;
+  if (node.artifacts && node.artifacts.annotations && node.artifacts.annotations.length > 0) {
+    annotate = node.artifacts.annotations[0].annotation;
   }
 
 
@@ -153,10 +150,11 @@ function BackboneNode<T, S extends string, A>({
   if (label.length > 20) label = label.substr(0, 20) + "..";
 
   // text should always be on the right side of the cellsVis
-  // @ts-ignore
-  if(node.state.model.cells != null){
-    // @ts-ignore
-    padding += ((cellsVisArea ? Math.sqrt(cellsVisArea) : Math.sqrt(15) )+6)*node.state.model.cells.length;
+  const state: any = prov?.getState(node);
+
+  if(state.model.cells != null){
+    
+    padding += ((cellsVisArea ? Math.sqrt(cellsVisArea) : Math.sqrt(15)) + 6) * state.model.cells.length;
   }
   let labelG = (
     <g style={{ opacity: 1 }} transform={translate(padding, 0)}>
@@ -299,7 +297,7 @@ function BackboneNode<T, S extends string, A>({
     </Animate>
   );
 
-  function labelClicked(node: ProvenanceNode<T, S, A>) {
+  function labelClicked(node: ProvenanceNode<S, A>) {
     if (!annotationContent) {
       return;
     } else if (annotationOpen === nodeMap[node.id].depth) {
@@ -309,7 +307,7 @@ function BackboneNode<T, S extends string, A>({
     }
   }
 
-  function nodeClicked(node: ProvenanceNode<T, S, A>, event: any) {
+  function nodeClicked(node: ProvenanceNode<S, A>, event: any) {
     if (bundleMap && Object.keys(bundleMap).includes(node.id)) {
       let exemptCopy: string[] = Array.from(exemptList);
 
@@ -332,12 +330,17 @@ function BackboneNode<T, S extends string, A>({
     let cellsVis;
     let squareSideLength = cellsVisArea ? Math.sqrt(cellsVisArea) : Math.sqrt(15);
     let xLength = (squareSideLength + 6);
-        // @ts-ignore
-    if (node.state.model.cells != null) {
-      // @ts-ignore
-      let nodeExtra: {cellPositions: Array<number>,changedCellId: number} = prov.getExtraFromArtifact(node.id)[0].e;
-      // @ts-ignore
-      cellsVis = node.state.model.cells.map((cell, index) =>
+    const state: any = prov?.getState(node);
+
+    if (state.model.cells != null && state.model.cells.length > 0) {
+      let nodeExtra: {cellPositions: Array<number>, changedCellId: number} = node.metadata as any;
+      
+      if (node.metadata.eventType === "Root") {
+        nodeExtra.changedCellId = 0;
+        nodeExtra.cellPositions = [];
+      }
+      
+      cellsVis = state.model.cells.map((cell: any, index: number) =>
         <g key={index}
            transform={translate(20 + xLength * index, 0)}>
           <path
@@ -348,8 +351,8 @@ function BackboneNode<T, S extends string, A>({
           <CellsLine yLength={squareSideLength/2} xLength={xLength} index={index} nodeExtra={nodeExtra}/>
         </g>);
     }
-    // @ts-ignore
-    if (node.state.model.cells != null) {
+    
+    if (state.model.cells != null) {
       return <g>
         {cellsVis}
       </g>;
@@ -374,16 +377,15 @@ function BackboneNode<T, S extends string, A>({
     nodeExtra
   }: CellsLineProps){
     let cellPositions = nodeExtra.cellPositions;
+    const state: any = prov?.getState(node);
     if(cellPositions != null){ // cell added or moved
-      // @ts-ignore
-      if(cellPositions.length == node.state.model.cells.length-1) { // some cell was added
-        // @ts-ignore
-        if (cellPositions[index] == nodeExtra.changedCellId || cellPositions[index] == undefined) { // this is the new cell, undefined if on rightmost side
+      if(cellPositions.length == state.model.cells.length-1) { // some cell was added
+        if (index === cellPositions.length || cellPositions[index] == nodeExtra.changedCellId || cellPositions[index] == undefined) { // this is the new cell, undefined if on rightmost side
           return null;
         }
       }
-      // @ts-ignore
-      if(cellPositions.length == node.state.model.cells.length+1) { // some cell was removed
+      
+      if(cellPositions.length == state.model.cells.length+1) { // some cell was removed
         if(cellPositions[index] == index) { // this cell didnt change position
           return <line
             x1="0"
@@ -436,27 +438,21 @@ function BackboneNode<T, S extends string, A>({
       switch (cell.cell_type) {
         case "code": {
           return style({
-            // @ts-ignore
-            fill: prov.getExtraFromArtifact(node.id)[0].e.changedCellId == index ? 'rgb(150, 22, 22)' : 'white',
+            fill: node.metadata.changedCellId == index ? 'rgb(150, 22, 22)' : 'white',
             stroke: 'rgb(150, 22, 22)'
           });
-          break;
         }
         case "markdown": {
           return style({
-            // @ts-ignore
-            fill: prov.getExtraFromArtifact(node.id)[0].e.changedCellId == index ? 'rgb(22, 150, 22)' : 'white',
+            fill: node.metadata.changedCellId == index ? 'rgb(22, 150, 22)' : 'white',
             stroke: 'rgb(22, 150, 22)'
           });
-          break;
         }
         case "raw": {
           return style({
-            // @ts-ignore
-            fill: prov.getExtraFromArtifact(node.id)[0].e.changedCellId == index ? 'rgb(22, 22, 150)' : 'white',
+            fill: node.metadata.changedCellId == index ? 'rgb(22, 22, 150)' : 'white',
             stroke: 'rgb(22, 22, 150)'
           });
-          break;
         }
       }
     }

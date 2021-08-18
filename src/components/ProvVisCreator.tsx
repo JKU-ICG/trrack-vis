@@ -4,6 +4,7 @@ import ProvVis from './ProvVis';
 import UndoRedoButton from './UndoRedoButton';
 import {EventConfig} from '../Utils/EventConfig';
 import {BundleMap} from '../Utils/BundleMap';
+import { toJS } from 'mobx';
 
 import { Provenance, ProvenanceGraph, NodeID } from '@visdesignlab/trrack';
 
@@ -38,16 +39,16 @@ export function ProvVisCreator<T, S extends string, A>(
   callback?: (id: NodeID) => void,
   buttons: boolean = true,
   ephemeralUndo: boolean = false,
-  fauxRoot: NodeID = prov.graph().root,
+  fauxRoot: NodeID = prov.graph.root,
   config: Partial<ProvVisConfig> = {}
 ) {
   ReactDOM.render(
     <ProvVis
       {...config}
-      root={fauxRoot}
+      root={toJS(fauxRoot, { recurseEverything: true })}
       changeCurrent={callback}
-      current={prov.graph().current}
-      nodeMap={prov.graph().nodes}
+      current={toJS(prov.graph.current, { recurseEverything: true })}
+      nodeMap={toJS(prov.graph.nodes, { recurseEverything: true })}
       prov={prov}
       undoRedoButtons={true}
       ephemeralUndo={ephemeralUndo}
@@ -58,7 +59,7 @@ export function ProvVisCreator<T, S extends string, A>(
 
 export function UndoRedoButtonCreator<T, S extends string, A>(
   node: Element,
-  graph: ProvenanceGraph<T, S, A>,
+  graph: ProvenanceGraph<S, A>,
   undoCallback: () => void,
   redoCallback: () => void
 ) {
