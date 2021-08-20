@@ -7,7 +7,7 @@ import { style } from 'typestyle';
 export interface UndoRedoConfig<T, S extends string, A> {
   undoCallback: () => void;
   redoCallback: () => void;
-  graph?: ProvenanceGraph<T, S, A>;
+  graph?: ProvenanceGraph<S, A>;
 }
 
 function UndoRedoButton<T, S extends string, A>({

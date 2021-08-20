@@ -33,27 +33,34 @@ interface LegendProps {
   eventConfig?: EventConfig<string>,
   iconHeight: number,
   iconWidth: number,
+  typeFilter: Set<string>,
+  setTypeFilter: (typeFilter: Set<string>) => any
 }
 
-function redraw() {
-  console.log("redraw")
-}
 
 export function Legend({
     filters,
     eventConfig,
     iconHeight,
-    iconWidth
+    iconWidth,
+    typeFilter,
+    setTypeFilter
   }: LegendProps) {
   let eventTypeDescriptions = new Array<Object>();
   let transform = `translate(${iconHeight/2}, ${iconWidth/2-2.5})`;
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
+    // update typeFilter state
+    e.target.checked ? typeFilter.add(key) : typeFilter.delete(key)
+    setTypeFilter(new Set<string>(typeFilter));
+  }
 
   if(eventConfig){
     for (let key in eventConfig) {
       let event = eventConfig[key];
       let eventDiv = <div className={eventDivStyle} key={key}>
         {filters &&
-        <input type="checkbox" id={key+" checkbox"} name={key} value={key} onClick={redraw}></input>
+        <input type="checkbox" id={key+" checkbox"} name={key} value={key} checked={typeFilter.has(key)} onChange={e => onChange(e, key)}></input>
         }
         <svg height={iconHeight} width={iconWidth} className={eventIconStyle} >
           <g transform={transform}>

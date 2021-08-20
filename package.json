@@ -122,7 +122,6 @@
     "rollup-plugin-postcss": "^2.0.5",
     "rollup-plugin-sourcemaps": "^0.5.0",
     "rollup-plugin-typescript2": "^0.25.3",
-    "ic-release": "^17.0.2",
     "shelljs": "^0.8.3",
     "travis-deploy-once": "^5.0.11",
     "ts-jest": "^25.1.0",
@@ -138,7 +137,7 @@
     "react-dom": "^16.12.0"
   },
   "dependencies": {
-    "@visdesignlab/trrack": "^1.2.0",
+    "@visdesignlab/trrack": "^2.0.0-alpha.10",
     "d3": "^5.15.0",
     "mobx": "^5.15.4",
     "mobx-react": "^6.1.7",
