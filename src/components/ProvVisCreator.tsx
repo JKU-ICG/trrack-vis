@@ -42,19 +42,23 @@ export function ProvVisCreator<T, S extends string, A>(
   fauxRoot: NodeID = prov.graph.root,
   config: Partial<ProvVisConfig> = {}
 ) {
-  ReactDOM.render(
+  const render = () => ReactDOM.render(
     <ProvVis
       {...config}
-      root={toJS(fauxRoot, { recurseEverything: true })}
+      root={fauxRoot}
       changeCurrent={callback}
-      current={toJS(prov.graph.current, { recurseEverything: true })}
-      nodeMap={toJS(prov.graph.nodes, { recurseEverything: true })}
+      current={prov.graph.current}
+      nodeMap={prov.graph.nodes}
       prov={prov}
       undoRedoButtons={true}
       ephemeralUndo={ephemeralUndo}
     />,
     node
   );
+
+  prov.addGlobalObserver(render);
+
+  render();
 }
 
 export function UndoRedoButtonCreator<T, S extends string, A>(

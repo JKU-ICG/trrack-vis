@@ -21,6 +21,7 @@ import linkTransitions from './LinkTransitions';
 import nodeTransitions from './NodeTransitions';
 import { treeColor } from './Styles';
 import {Legend} from "./Legend";
+import { toJS } from 'mobx';
 
 interface ProvVisProps<T, S extends string, A> {
   root: NodeID;
@@ -102,8 +103,11 @@ function ProvVis<T, S extends string, A>({
   const [first, setFirst] = useState(true);
   const [bookmark, setBookmark] = useState(false);
   const [annotationOpen, setAnnotationOpen] = useState(-1);
+  const [typeFilter, setTypeFilter] = useState<Set<string>>(new Set());
+
   let list: string[] = [];
   let eventTypes = new Set<string>();
+
   for(let j in nodeMap)
   {
     let child = nodeMap[j]
@@ -216,67 +220,42 @@ function ProvVis<T, S extends string, A>({
     setFirst(false);
   }, []);
 
+  // map that contains a filtered deep-copy of the node graph
+  const filteredNodeGraph: Map<string, ProvenanceNode<S, A>> = new Map([[root, toJS(nodeMap[root], { recurseEverything: true })]]);
 
-  // Apply user filters:
-  let typeFilters: Array<string> = new Array();
-  eventTypes.forEach(type => {
-    let id = type+" checkbox";
-    let checkbox = document.getElementById(id);
-    // @ts-ignore
-    if(checkbox && checkbox.checked){
-      typeFilters.push(type);
+  /**
+   * Builds a filtered deep-copy of the node graph (recursive)
+   * @param node root node of subtree to filter
+   */
+  function filterNodeGraph(node: ProvenanceNode<S, A>) {
+    // get the existing copy of the node
+    const filteredNode = filteredNodeGraph.get(node.id);
+    if (!filteredNode || node.children.length === 0) return;
+
+    // determine the children this node is supposed to have
+    let remChildren: Array<string> = [];
+    while ((remChildren = filteredNode.children.filter(c => typeFilter.has(nodeMap[c].metadata.eventType))).length > 0) {
+      filteredNode.children = filteredNode.children?.filter(c => !remChildren.includes(c));
+      remChildren.forEach(c => filteredNode.children?.push(...nodeMap[c].children));
     }
-  });
 
-
-
-  let removeList: Array<string> = [];
-  recursiveRemoveFiltered(nodeMap[root]);
-
-  // Go through the whole tree and remove nodes that have been filtered out by user settings.
-  function recursiveRemoveFiltered(node: ProvenanceNode<S, A>, parentNode?: ProvenanceNode<S, A>){
-    // node that needs to be removed:
-    if(isChildNode(node) && node.metadata && node.metadata.eventType && typeFilters.includes(node.metadata.eventType)){
-      // remove the node from the parents children and from the nodeList
-      if(node.parent && parentNode && parentNode.children){
-        // remove from parent if exists there
-        if(parentNode.children.includes(node.id)){
-          parentNode.children.splice(parentNode.children.indexOf(node.id),1);
-        }
-        // remove from nodeList... this is done with the filter methode when initialising nodeList later on, but here I set the condition
-        removeList.push(node.id);
-      }
-      node.children.forEach(n => {
-        let child = nodeMap[n];
-        if(isChildNode(node) && node.parent && parentNode && parentNode.children){
-          if(isChildNode(child)){ // for sure it is a child, but I check here because typescript does not know
-            child.parent = parentNode.id;
-          }
-          // parentNode.children.push(n)
-          recursiveRemoveFiltered(child,parentNode); // the parent stays the parent of this node, since this one is removed
-        }
-      });
-    }else{ // node that will not be removed
-      // if node was already child of parentNode: no problem, if not: add it
-      if(parentNode && !parentNode.children.includes(node.id)){
-        parentNode.children.push(node.id);
-      }
-      if(node.children){
-        node.children.forEach(n => {
-          let child = nodeMap[n];
-          recursiveRemoveFiltered(child,node); // the parent is THIS node, not the parent node of this node
-        });
-      }
-    }
+    // create copies of the child nodes, add them to the filtered node graph and filter their subtrees
+    filteredNode.children.map(c => nodeMap[c]).forEach(child => {
+      const childCpy = toJS(child, { recurseEverything: true }) as StateNode<S, A> | DiffNode<S, A>;
+      childCpy.parent = node.id;
+      filteredNodeGraph.set(child.id, childCpy);
+      filterNodeGraph(child);
+    });
   }
 
-  let nodeList = Object.values(nodeMap).filter(
-    (d) => !removeList.includes(d.id)
-  );
+  // filter node graph
+  filterNodeGraph(nodeMap[root]);
+
+  let nodeList = Array.from(filteredNodeGraph.values());
 
   let filteredBundleMap: BundleMap = {};
   for(let key in bundleMap){
-    if(!removeList.includes(key)){
+    if(filteredNodeGraph.has(key)){
       filteredBundleMap[key] = bundleMap[key];
     }
   }
@@ -513,10 +492,12 @@ function ProvVis<T, S extends string, A>({
     <div>
       {legend &&
         <Legend
-          filters={filters}
-          eventConfig={eventConfig}
-          iconHeight={25}
-          iconWidth={25}
+          filters = {filters}
+          eventConfig = {eventConfig}
+          iconHeight = {25}
+          iconWidth = {25}
+          typeFilter = {typeFilter}
+          setTypeFilter = {setTypeFilter}
         />
       }
       <div id="undoRedoDiv" style={undoRedoStickyStyle}>
