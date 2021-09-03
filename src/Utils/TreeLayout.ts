@@ -4,7 +4,7 @@ import { ProvenanceNode } from '@visdesignlab/trrack';
 
 export type TreeNode = HierarchyNode<unknown>;
 
-export interface ExtendedHierarchyNode<T, S, A> extends HierarchyNode<ProvenanceNode<T, S, A>> {
+export interface ExtendedHierarchyNode<T, S, A> extends HierarchyNode<ProvenanceNode<S, A>> {
   column: number;
 }
 
