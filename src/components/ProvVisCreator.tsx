@@ -37,10 +37,11 @@ export function ProvVisCreator<T, S extends string, A>(
   node: Element,
   prov: Provenance<T, S, A>,
   callback?: (id: NodeID) => void,
-  buttons: boolean = true,
+  undoRedoButtons: boolean = true,
   ephemeralUndo: boolean = false,
   fauxRoot: NodeID = prov.graph.root,
-  config: Partial<ProvVisConfig> = {}
+  config: Partial<ProvVisConfig> = {},
+  filter: Set<S> = new Set<S>()
 ) {
   const render = () => ReactDOM.render(
     <ProvVis
@@ -50,8 +51,9 @@ export function ProvVisCreator<T, S extends string, A>(
       current={prov.graph.current}
       nodeMap={prov.graph.nodes}
       prov={prov}
-      undoRedoButtons={true}
+      undoRedoButtons={undoRedoButtons}
       ephemeralUndo={ephemeralUndo}
+      filter={filter}
     />,
     node
   );

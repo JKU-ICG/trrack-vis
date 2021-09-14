@@ -57,6 +57,7 @@ interface ProvVisProps<T, S extends string, A> {
   cellsVisArea?: number;
   legend?: boolean;
   filters?: boolean;
+  filter?: Set<S>;
 }
 
 export type StratifiedMap<T, S, A> = {
@@ -98,12 +99,13 @@ function ProvVis<T, S extends string, A>({
   ephemeralUndo = false,
   cellsVisArea = 50,
   legend = false,
-  filters = false
+  filters = false,
+  filter = new Set<S>()
 }: ProvVisProps<T, S, A>) {
   const [first, setFirst] = useState(true);
   const [bookmark, setBookmark] = useState(false);
   const [annotationOpen, setAnnotationOpen] = useState(-1);
-  const [typeFilter, setTypeFilter] = useState<Set<string>>(new Set());
+  const [typeFilter, setTypeFilter] = useState<Set<string>>(filter);
 
   let list: string[] = [];
   let eventTypes = new Set<string>();
@@ -500,41 +502,43 @@ function ProvVis<T, S extends string, A>({
           setTypeFilter = {setTypeFilter}
         />
       }
-      <div id="undoRedoDiv" style={undoRedoStickyStyle}>
-        <UndoRedoButton
-          graph={prov ? prov.graph : undefined}
-          undoCallback = {() => {
-            if(prov)
-            {
-              if(ephemeralUndo)
+      {undoRedoButtons &&
+        <div id="undoRedoDiv" style={undoRedoStickyStyle}>
+          <UndoRedoButton
+            graph={prov ? prov.graph : undefined}
+            undoCallback = {() => {
+              if(prov)
               {
-                prov.goBackToNonEphemeral()
+                if(ephemeralUndo)
+                {
+                  prov.goBackToNonEphemeral()
+                }
+                else{
+                  prov.goBackOneStep();
+                }
               }
               else{
-                prov.goBackOneStep();
+                return;
               }
-            }
-            else{
-              return;
-            }
-          }}
-          redoCallback = {() => {
-            if(prov)
-            {
-              if(ephemeralUndo)
+            }}
+            redoCallback = {() => {
+              if(prov)
               {
-                prov.goForwardToNonEphemeral()
+                if(ephemeralUndo)
+                {
+                  prov.goForwardToNonEphemeral()
+                }
+                else{
+                  prov.goForwardOneStep();
+                }
               }
               else{
-                prov.goForwardOneStep();
+                return;
               }
-            }
-            else{
-              return;
-            }
-          }}
-        />
-      </div>
+            }}
+          />
+        </div>
+      }
       <div style={overflowStyle} className={container} id="prov-vis">
         <svg
           style={{ overflow: "visible" }}
